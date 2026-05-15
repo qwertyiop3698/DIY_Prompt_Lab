@@ -120,9 +120,14 @@ def build_system_prompt(role_prompt, tone_prompt, answer_length, format_prompt, 
     return "\n".join(prompt_parts)
 
 
-def build_mode_message(role, tone, answer_length, output_format, temperature):
+def build_mode_message(role, tone, answer_length, output_format, temperature, extra_instruction):
+    extra_label = extra_instruction.strip() or "없음"
+
     if not any([role, tone, output_format]) and answer_length == "제한 없음":
-        return f"기본 LLM 설정으로 답변합니다. (답변온도 : {temperature:.1f})"
+        return (
+            f"기본 LLM 설정으로 답변합니다. "
+            f"(답변온도 : {temperature:.1f}) 추가 지시사항: {extra_label}"
+        )
 
     role_label = role or "AI"
     tone_label = tone or ""
@@ -139,9 +144,15 @@ def build_mode_message(role, tone, answer_length, output_format, temperature):
     mode_label = f"{descriptor_text} {role_label}".strip()
 
     if answer_length == "제한 없음":
-        return f"{mode_label}처럼 {length_label} 답변합니다. (답변온도 : {temperature:.1f})"
+        return (
+            f"{mode_label}처럼 {length_label} 답변합니다. "
+            f"(답변온도 : {temperature:.1f}) 추가 지시사항: {extra_label}"
+        )
 
-    return f"{mode_label}처럼 {length_label} 답변합니다. (답변온도 : {temperature:.1f})"
+    return (
+        f"{mode_label}처럼 {length_label} 답변합니다. "
+        f"(답변온도 : {temperature:.1f}) 추가 지시사항: {extra_label}"
+    )
 
 
 def clear_welcome_message():
@@ -475,6 +486,7 @@ def render_prompt_settings():
             answer_length,
             format_display,
             temperature,
+            extra_instruction,
         )
         st.info(setting_preview)
 
@@ -500,6 +512,7 @@ def render_prompt_settings():
         answer_length,
         format_display,
         temperature,
+        extra_instruction,
     )
     return system_prompt, temperature, mode_message, is_saved
 
