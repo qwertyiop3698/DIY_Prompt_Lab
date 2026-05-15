@@ -122,24 +122,26 @@ def build_system_prompt(role_prompt, tone_prompt, answer_length, format_prompt, 
 
 def build_mode_message(role, tone, answer_length, output_format):
     if not any([role, tone, output_format]) and answer_length == "제한 없음":
-        return "🤖 기본 LLM 모드로 답변합니다."
+        return "기본 LLM 모드로 답변합니다."
 
     role_label = role or "AI"
     tone_label = tone or ""
     format_label = output_format or ""
     length_label = answer_length if answer_length != "제한 없음" else "길이 제한 없이"
 
-    mode_words = []
+    descriptors = []
     if tone_label:
-        mode_words.extend([tone_label, "말하는"])
+        descriptors.append(f"{tone_label} 말하는")
     if format_label:
-        mode_words.append(format_label)
-    mode_words.append(role_label)
+        descriptors.append(f"{format_label} 형식의")
+
+    descriptor_text = ", ".join(descriptors)
+    mode_label = f"{descriptor_text} {role_label}".strip()
 
     if answer_length == "제한 없음":
-        return f"🤖 {' '.join(mode_words)} 모드로 {length_label} 답변합니다."
+        return f"{mode_label} 모드로 {length_label} 답변합니다."
 
-    return f"🤖 {' '.join(mode_words)} 모드로 {length_label}로 답변합니다."
+    return f"{mode_label} 모드로 {length_label} 답변합니다."
 
 
 def clear_welcome_message():
@@ -195,8 +197,7 @@ def get_gemini_response(api_key, model_name, system_prompt, user_input, temperat
 
 def render_chat_history():
     for index, message in enumerate(st.session_state.messages):
-        avatar = "🤖" if message["role"] == "assistant" else None
-        with st.chat_message(message["role"], avatar=avatar):
+        with st.chat_message(message["role"]):
             st.write(message["content"])
 
             if message["role"] == "assistant":
@@ -293,6 +294,7 @@ def patch_selectbox_interactions():
         """
         <script>
         const marker = "data-toggle-close-selectbox";
+        let closingSelectbox = false;
 
         function closeOpenSelectbox() {
           const active = window.parent.document.activeElement;
@@ -308,22 +310,46 @@ def patch_selectbox_interactions():
           }
         }
 
+        function findCombobox(element) {
+          return element.closest('[role="combobox"]')
+            || element.closest('div[data-baseweb="select"]')?.querySelector('[role="combobox"]');
+        }
+
+        function shouldClose(combobox) {
+          return combobox && combobox.getAttribute("aria-expanded") === "true";
+        }
+
+        function closeFromClick(event, combobox) {
+          if (!shouldClose(combobox) || closingSelectbox) {
+            return;
+          }
+
+          closingSelectbox = true;
+          event.preventDefault();
+          event.stopPropagation();
+          closeOpenSelectbox();
+
+          window.setTimeout(() => {
+            closingSelectbox = false;
+          }, 120);
+        }
+
         function patchSelectboxes() {
           const doc = window.parent.document;
-          const comboboxes = doc.querySelectorAll('[role="combobox"]');
+          const selectboxes = doc.querySelectorAll('div[data-baseweb="select"]');
 
-          comboboxes.forEach((combobox) => {
-            if (combobox.getAttribute(marker) === "1") {
+          selectboxes.forEach((selectbox) => {
+            if (selectbox.getAttribute(marker) === "1") {
               return;
             }
 
-            combobox.setAttribute(marker, "1");
-            combobox.addEventListener("mousedown", (event) => {
-              if (combobox.getAttribute("aria-expanded") === "true") {
-                event.preventDefault();
-                event.stopPropagation();
-                closeOpenSelectbox();
-              }
+            selectbox.setAttribute(marker, "1");
+            selectbox.addEventListener("pointerdown", (event) => {
+              closeFromClick(event, findCombobox(event.target));
+            }, true);
+
+            selectbox.addEventListener("click", (event) => {
+              closeFromClick(event, findCombobox(event.target));
             }, true);
           });
         }
@@ -506,7 +532,7 @@ def main():
         with st.chat_message("user"):
             st.write(user_input)
 
-        with st.chat_message("assistant", avatar="🤖"):
+        with st.chat_message("assistant"):
             with st.spinner("답변을 생성하는 중입니다..."):
                 try:
                     answer = get_gemini_response(
