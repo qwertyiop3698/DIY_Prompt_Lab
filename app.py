@@ -405,6 +405,8 @@ def render_prompt_settings():
     patch_selectbox_interactions()
 
     with st.expander("프롬프트 설정", expanded=True):
+        st.caption("직접 입력을 비워두면 해당 조건은 따로 지정하지 않습니다.")
+
         col1, col2 = st.columns(2)
         with col1:
             role = st.selectbox(
@@ -414,7 +416,7 @@ def render_prompt_settings():
             )
             custom_role = st.text_input(
                 "역할 직접 입력",
-                placeholder="비워두면 역할을 따로 지정하지 않습니다.",
+                placeholder="직접입력",
                 disabled=role != "직접 입력",
                 label_visibility="collapsed",
             )
@@ -431,7 +433,7 @@ def render_prompt_settings():
             )
             custom_tone = st.text_input(
                 "말투 직접 입력",
-                placeholder="비워두면 말투를 따로 지정하지 않습니다.",
+                placeholder="직접입력",
                 disabled=tone != "직접 입력",
                 label_visibility="collapsed",
             )
@@ -443,7 +445,7 @@ def render_prompt_settings():
             )
             custom_format = st.text_input(
                 "형식 직접 입력",
-                placeholder="비워두면 형식을 따로 지정하지 않습니다.",
+                placeholder="직접입력",
                 disabled=output_format != "직접 입력",
                 label_visibility="collapsed",
             )
