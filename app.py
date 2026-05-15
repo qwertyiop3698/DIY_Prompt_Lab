@@ -122,7 +122,7 @@ def build_system_prompt(role_prompt, tone_prompt, answer_length, format_prompt, 
 
 def build_mode_message(role, tone, answer_length, output_format, temperature):
     if not any([role, tone, output_format]) and answer_length == "제한 없음":
-        return f"기본 LLM 모드로 답변합니다. (답변온도 : {temperature:.1f})"
+        return f"기본 LLM 설정으로 답변합니다. (답변온도 : {temperature:.1f})"
 
     role_label = role or "AI"
     tone_label = tone or ""
@@ -139,9 +139,9 @@ def build_mode_message(role, tone, answer_length, output_format, temperature):
     mode_label = f"{descriptor_text} {role_label}".strip()
 
     if answer_length == "제한 없음":
-        return f"{mode_label} 모드로 {length_label} 답변합니다. (답변온도 : {temperature:.1f})"
+        return f"{mode_label}처럼 {length_label} 답변합니다. (답변온도 : {temperature:.1f})"
 
-    return f"{mode_label} 모드로 {length_label} 답변합니다. (답변온도 : {temperature:.1f})"
+    return f"{mode_label}처럼 {length_label} 답변합니다. (답변온도 : {temperature:.1f})"
 
 
 def clear_welcome_message():
