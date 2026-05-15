@@ -120,9 +120,9 @@ def build_system_prompt(role_prompt, tone_prompt, answer_length, format_prompt, 
     return "\n".join(prompt_parts)
 
 
-def build_mode_message(role, tone, answer_length, output_format):
+def build_mode_message(role, tone, answer_length, output_format, temperature):
     if not any([role, tone, output_format]) and answer_length == "제한 없음":
-        return "기본 LLM 모드로 답변합니다."
+        return f"기본 LLM 모드로 답변합니다. (답변온도 : {temperature:.1f})"
 
     role_label = role or "AI"
     tone_label = tone or ""
@@ -139,9 +139,9 @@ def build_mode_message(role, tone, answer_length, output_format):
     mode_label = f"{descriptor_text} {role_label}".strip()
 
     if answer_length == "제한 없음":
-        return f"{mode_label} 모드로 {length_label} 답변합니다."
+        return f"{mode_label} 모드로 {length_label} 답변합니다. (답변온도 : {temperature:.1f})"
 
-    return f"{mode_label} 모드로 {length_label} 답변합니다."
+    return f"{mode_label} 모드로 {length_label} 답변합니다. (답변온도 : {temperature:.1f})"
 
 
 def clear_welcome_message():
@@ -469,7 +469,13 @@ def render_prompt_settings():
         tone_display = resolve_display_value(tone, custom_tone)
         format_display = resolve_display_value(output_format, custom_format)
 
-        setting_preview = build_mode_message(role_display, tone_display, answer_length, format_display)
+        setting_preview = build_mode_message(
+            role_display,
+            tone_display,
+            answer_length,
+            format_display,
+            temperature,
+        )
         st.info(setting_preview)
 
         is_saved = st.button("설정 완료", type="primary", use_container_width=True)
@@ -488,7 +494,13 @@ def render_prompt_settings():
     role_display = resolve_display_value(role, custom_role)
     tone_display = resolve_display_value(tone, custom_tone)
     format_display = resolve_display_value(output_format, custom_format)
-    mode_message = build_mode_message(role_display, tone_display, answer_length, format_display)
+    mode_message = build_mode_message(
+        role_display,
+        tone_display,
+        answer_length,
+        format_display,
+        temperature,
+    )
     return system_prompt, temperature, mode_message, is_saved
 
 
